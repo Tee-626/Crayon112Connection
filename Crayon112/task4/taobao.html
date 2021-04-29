@@ -1,0 +1,272 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>淘宝购物车</title>
+	<link rel="stylesheet" type="text/css" href="main.css">
+	<script src="jquery-1.12.4.js"></script>
+	<script>
+		var price = 0;
+		var map = {"北京":"beijing","上海":"shanghai","广东":"guangdong"};
+		$(function(){
+
+			//用绑定的方法处理删除事件！防止排序重新生成的元素失去功能，其他事件模仿此方法
+			$(document).on('click',":button", function(){
+				$(this).parents("tr").remove();	//remove()功能：删除自己
+				$(this)
+				chgcolor();
+			})
+
+			//价格排序
+			$("#priceSort").click(function(){  
+				//1.保存原始数据
+				var aTr = new Array();
+				$("tbody tr").each(function(){  //表格中每一行
+					//对象obj保存每行上的元素，html属性是标签内容，price是排序的依据--价格
+					var obj = new Object();   
+					obj.html = $(this).html();  //标签间的内容
+					obj.price = parseFloat($(this).find("span").html())  //排序依据：价钱
+					obj.checked = $(this).find(":checkbox").prop("checked"); //复选框状态
+					aTr.push(obj);
+				})
+						
+				//2.排序----冒泡		
+				if($(this).hasClass("btn_down")){ //有"btn_down" 降序
+					sortDescPrice(aTr);  
+				}else{ //升序
+					sortPrice(aTr);
+				}
+				
+				//3.按照排序的结果重新生成<table>中的<tr>
+				//3.1 拼字符串
+				var sTr="";
+				$(aTr).each(function(){
+					sTr += "<tr>"+this.html+"</tr>"
+				})
+				//3.2 把字符串代表的所有元素添加到<table>中
+				$("tbody").html(sTr);
+				
+				//3.3 还原复选框
+				$(aTr).each(function(index){
+					var flag = this.checked;
+					$("tr:gt(0)").find(":checkbox").eq(index).prop("checked", flag);
+				})
+
+				$(this).toggleClass("btn_down");
+
+				chgcolor();
+			})	
+
+			//地区排序
+			$("#addressSort").click(function(){  
+				//1.保存原始数据
+				var aTr = new Array();
+				$("tbody tr").each(function(){  //表格中每一行
+					//对象obj保存每行上的元素，html属性是标签内容，price是排序的依据--价格
+					var obj = new Object();   
+					obj.html = $(this).html();  //标签间的内容
+					obj.address = $(this).find("td:eq(3)").html(); //排序依据：
+					obj.checked = $(this).find(":checkbox").prop("checked"); //复选框状态
+					aTr.push(obj);
+				})
+						
+				//2.排序----冒泡		
+				if($(this).hasClass("btn_down")){ //有"btn_down" 降序
+					sortDescAddress(aTr);  
+				}else{ //升序
+					sortAddress(aTr);
+				}
+				
+				//3.按照排序的结果重新生成<table>中的<tr>
+				//3.1 拼字符串
+				var sTr="";
+				$(aTr).each(function(){
+					sTr += "<tr>"+this.html+"</tr>"
+				})
+				//3.2 把字符串代表的所有元素添加到<table>中
+				$("tbody").html(sTr);
+				
+				//3.3 还原复选框
+				$(aTr).each(function(index){
+					var flag = this.checked;
+					$("tr:gt(0)").find(":checkbox").eq(index).prop("checked", flag);
+				})
+
+				$(this).toggleClass("btn_down");
+
+				chgcolor();
+			})	
+			
+			//全选按钮
+			$("thead").find(":checkbox").click(function(){
+				price = 0;
+				if($("thead").find(":checkbox").prop('checked') == true){
+					$("tbody tr").each(function(){
+						$(this).find(":checkbox").prop("checked",true);
+						price += parseFloat($(this).find("span").html());
+					})
+				}else{
+					$("tbody tr").each(function(){
+						$(this).find(":checkbox").prop("checked",false);
+					})
+				}
+				display();
+			})
+
+			//全选按钮的状态改变
+			$("tbody tr").each(function(){
+				//console.log(index);
+				$(this).find(":checkbox").change(function(){
+					if($(this).prop("checked") == false){						
+						$("thead").find(":checkbox").prop("checked", false);
+					}
+				})
+			})
+
+			//计算总价
+			$("tbody tr").each(function(){
+				//console.log(index);
+				$(this).find(":checkbox").change(function(){
+					if($(this).prop("checked") == true){
+						price += parseFloat($(this).parents("tr").find("span").html());
+					}else{
+						price -= parseFloat($(this).parents("tr").find("span").html());
+					}
+					display();
+				})
+			})
+
+			chgcolor();
+
+		})
+
+		//隔行变色
+		function chgcolor(){
+			$("tbody tr:even").css("background","#FFF");
+			$("tbody tr:odd").css("background","#fdec8b");
+		}
+
+
+		function sortPrice(a){//a:待排序的数组，冒泡法排序
+			var t;
+			for(var i=0; i<a.length-1;i++){ //趟：n-1 n:a数组的长度
+				 for(var j=0; j<a.length-1-i; j++){
+		              if(a[j].price>a[j+1].price){
+		                   t=a[j];
+		                   a[j]=a[j+1];
+		                   a[j+1]=t;
+		              }
+		         }
+		    }			
+		}
+
+		function sortDescPrice(a){//a:待排序的数组
+			var t;
+			for(var i=0; i<a.length-1;i++){ //趟：n-1 n:a数组的长度
+				 for(var j=0; j<a.length-1-i; j++){
+		              if(a[j].price<a[j+1].price){
+		                   t=a[j];
+		                   a[j]=a[j+1];
+		                   a[j+1]=t;
+		              }
+		         }
+		   }			
+		}
+
+		function sortAddress(a){//a:待排序的数组，冒泡法排序
+			var t;
+			for(var i=0; i<a.length-1;i++){ //趟：n-1 n:a数组的长度
+				 for(var j=0; j<a.length-1-i; j++){
+		              if(map[a[j].address]>map[a[j+1].address]){
+		                   t=a[j];
+		                   a[j]=a[j+1];
+		                   a[j+1]=t;
+		              }
+		         }
+		    }			
+		}
+
+		function sortDescAddress(a){//a:待排序的数组
+			var t;
+			for(var i=0; i<a.length-1;i++){ //趟：n-1 n:a数组的长度
+				 for(var j=0; j<a.length-1-i; j++){
+		              if(map[a[j].address]<map[a[j+1].address]){
+		                   t=a[j];
+		                   a[j]=a[j+1];
+		                   a[j+1]=t;
+		              }
+		         }
+		   }			
+		}
+
+		function display(){
+			$("tfoot").find("span").html("" + price.toFixed(2)) ;
+		}
+
+</script>	
+</head>
+<body>
+<table id="taobao_table">
+    <thead>
+        <tr>
+            <th><label><input type="checkbox" /> 全选</label></th>
+            <th>商品名</th>
+            <th width="70"><a id="priceSort" class="btn_active" href="#">价格</a></th>
+            <th width="70"><a id="addressSort" class="btn_active" href="#">地区</a></th>
+            <th>功能</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td align="center" width="60"><input type="checkbox" /></td>
+            <td align="center"><img src="images/1.jpg" alt="商品一" longdesc="" /><a href="">果绿后背钩花蝴蝶镂空长袖针织衫开衫小披肩韩国气质薄2010秋新</a></td>
+            <td align="center">&yen;<span>59.00</span></td>
+            <td align="center">北京</td>
+            <td align="center"><input type="button" value="删除" /></td>
+        </tr>
+        <tr>
+            <td align="center"><input type="checkbox" /></td>
+            <td align="center"><img src="images/2.jpg" alt="商品二" longdesc="" /><a href="">2016夏装新款韩版女装</a></td>
+            <td align="center">&yen;<span>98.00</span></td>
+            <td align="center">广东</td>
+            <td align="center"><input type="button" value="删除" /></td>
+        </tr>
+        <tr>
+            <td align="center"><input type="checkbox" /></td>
+            <td align="center"><img src="images/3.jpg" alt="商品三" longdesc="" /><a href="">随意美妙 O.SA欧莎热卖女装2016秋新韩版纯棉短袖T恤女ST00401</a></td>
+            <td align="center">&yen;<span>33.00</span></td>
+            <td align="center">上海</td>
+            <td align="center"><input type="button" value="删除" /></td>
+        </tr>
+        <tr>
+            <td align="center"><input type="checkbox" /></td>
+            <td align="center"><img src="images/1.jpg" alt="商品二" longdesc="" /><a href="">2016秋装新款韩版女装淑女花苞波西米亚条纹连衣裙Q0070</a></td>
+            <td align="center">&yen;<span>198.00</span></td>
+            <td align="center">广东</td>
+            <td align="center"><input type="button" value="删除" /></td>
+        </tr>
+        <tr>
+            <td align="center" width="60"><input type="checkbox" /></td>
+            <td align="center"><img src="images/5.jpg" alt="商品一" longdesc="" /><a href="">韩国新款小清新柔软格子口袋长袖中长款衬衫</a></td>
+            <td align="center">&yen;<span>29.00</span></td>
+            <td align="center">北京</td>
+            <td align="center"><input type="button" value="删除" /></td>
+        </tr>
+        <tr>
+            <td align="center"><input type="checkbox" /></td>
+            <td align="center"><img src="images/6.jpg" alt="商品三" longdesc="" /><a href="">条纹T恤+渐变色牛仔背带裙</a></td>
+            <td align="center">&yen;<span>61.00</span></td>
+            <td align="center">上海</td>
+            <td align="center"><input type="button" value="删除" /></td>
+        </tr>
+    </tbody>
+    <tfoot>
+    	<tr>
+        	<th colspan="5">选中的商品总价是：&yen;
+				<span>0.00</span>元</th>
+        </tr>
+    </tfoot>
+</table>
+
+</body>
+</html>
